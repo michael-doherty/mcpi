@@ -1,0 +1,47 @@
+---
+title: "mcpi"
+author: "Michael Doherty"
+date: "29/12/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+rm(list=ls())
+library(parallel)
+cores <- detectCores()
+cl <- makeCluster(cores)
+```
+
+
+
+```{r}
+samples <- 10000
+
+pi.fun  <- function(samples){
+    x <- runif(samples,0,1)
+    y <- runif(samples,0,1)
+    z <- sqrt(x^2+y^2)
+    coords <- data.frame(x=x,y=y,z=z)
+  t <- length(coords$z[coords$z < 1])
+  pi.estimate <- (4*t) / samples
+  return(pi.estimate)  
+}
+
+start_time_single_core <- Sys.time()
+lapply(samples, pi.fun)
+end_time_single_core <- Sys.time()
+
+
+start_time_multi_core <- Sys.time()
+parLapply(cl, samples, pi.fun)
+end_time_multi_core <- Sys.time()
+```
+
+```{r}
+stopCluster(cl)
+paste0('Total single-core execution time was ', as.numeric(end_time_single_core - start_time_single_core), ' seconds.')
+paste0('Total multi-core execution time was ', as.numeric(end_time_multi_core - start_time_multi_core), ' seconds. Using ', cores, ' cores.')
+```
+
